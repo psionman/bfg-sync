@@ -1,0 +1,9 @@
+development_dir = ""
+local_env = "abc"
+remote_env = ""
+python_version = ""
+download_dir = ""
+ignore = []
+packages = []
+last_download = ""
+geometry = {'frm_main': '500x600', 'frm_config': '700x300'}

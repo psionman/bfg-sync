@@ -1,0 +1,30 @@
+[project]
+name = "bfg-sync"
+version = "0.0.0"
+description = "Sync packages with web-site"
+authors = [{name = "Jeff", "email" = "<jeffwatkins2000@gmail.com>"}]
+readme = "README.md"
+requires-python = ">=3.13"
+
+dependencies = [
+    # "icecream>=2.1.4",
+    # "markdown>=3.8",
+    # "parimiko>=0.2",
+    # "psi-toml>=0.0.5",
+    # "psiconfig>=0.0.13",
+    # "psiutils>=0.1.54",
+    # "python-dateutil>=2.9.0.post0",
+    # "python-dotenv>=1.1.0",
+    # "requests>=2.32.3",
+    # "tkinterweb>=4.3.1",
+]
+
+[dependency-groups]
+dev = [
+    'pytest',
+    'pytest-mock',
+    ]
+
+[build-system]
+requires = ['uv-build']
+build-backend = 'uv_build'
