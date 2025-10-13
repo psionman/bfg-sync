@@ -45,18 +45,20 @@ class MainFrame():
         if not self.config.last_download:
             self.config.last_download = 'Not downloaded'
 
+        self.comparison = Comparison()
+        print(f'{self.comparison.last_download=}')
+
         # tk variables
         self.use_ignore = tk.BooleanVar(value=True)
-        self.show_mismatches = tk.BooleanVar(value=True)
-        self.last_download = tk.StringVar(value=self.config.last_download)
-
-        self.comparison = Comparison()
+        self.show_only_mismatches = tk.BooleanVar(value=True)
+        self.last_download = tk.StringVar(value=self.comparison.last_download)
+        self.download_dir = tk.StringVar(value=self.config.download_dir)
 
         self.show()
         self.context_menu = self._context_menu()
 
         self._populate_tree()
-        self.show_mismatches.set(False)
+        # self.show_only_mismatches.set(False)
 
     def show(self):
         root = self.root
@@ -140,6 +142,7 @@ class MainFrame():
 
     def _comparison_frame(self, master: tk.Frame) -> tk.Frame:
         frame = ttk.Frame(master)
+        frame.columnconfigure(1, weight=1)
 
         row = 0
         separator = separator_frame(frame, 'File comparison')
@@ -147,8 +150,19 @@ class MainFrame():
                        sticky=tk.EW, padx=PAD)
 
         row += 1
+        label = ttk.Label(frame, text='Download dir')
+        label.grid(row=row, column=0, sticky=tk.E, padx=PAD, pady=PAD)
+
+        label = ttk.Label(
+            frame,
+            textvariable=self.download_dir,
+            borderwidth=1,
+            relief=tk.SUNKEN)
+        label.grid(row=row, column=1, sticky=tk.EW, padx=PAD, pady=PAD)
+
+        row += 1
         label = ttk.Label(frame, text='Last downloaded')
-        label.grid(row=row, column=0, sticky=tk.W, padx=PAD, pady=PAD)
+        label.grid(row=row, column=0, sticky=tk.E, padx=PAD, pady=PAD)
 
         label = ttk.Label(
             frame,
@@ -161,9 +175,9 @@ class MainFrame():
         check_button = ttk.Checkbutton(
             frame,
             text='Show only mismatches',
-            variable=self.show_mismatches)
+            variable=self.show_only_mismatches,
+            command=self._populate_tree)
         check_button.grid(row=row, column=0, sticky=tk.W)
-        check_button.bind('<Button-1>', self._populate_tree)
 
         row += 1
         self.tree = self._get_tree(frame)
@@ -213,6 +227,7 @@ class MainFrame():
         return tree
 
     def _populate_tree(self, *args) -> None:
+        self.last_download.set(self.comparison.last_download)
         self.tree.delete(*self.tree.get_children())
         style = ttk.Style()
         style.map(
@@ -223,7 +238,7 @@ class MainFrame():
 
         comparison = self.comparison.compare_files(self.use_ignore.get())
         for key, item in comparison.items():
-            if not item['match'] or self.show_mismatches.get():
+            if not item['match'] or not self.show_only_mismatches.get():
                 tag = 'match'
                 if not item['match']:
                     tag = 'mismatch'

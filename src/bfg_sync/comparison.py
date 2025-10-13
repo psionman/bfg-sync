@@ -33,27 +33,11 @@ class Comparison():
     def __init__(self):
         config = read_config()
         self.config = config
+        self.last_download = None
         self.local_versions = self._get_local_versions()
         # ic(self.local_versions)
 
         self.remote_versions = self._get_remote_versions()
-        # ic(self.remote_versions)
-
-        # ic(remote_files)
-        # self.package_list = config.packages
-
-        # (missing_remote_dir, missing_local_dir) = self._missing_dirs()
-        # self.missing_local_dir = missing_local_dir
-        # self.missing_remote_dir = missing_remote_dir
-
-        # (missing_local_files, missing_remote_files) = self._missing_files()
-        # self.missing_local_files = missing_local_files
-        # self.missing_remote_files = missing_remote_files
-        # self.packages = self._get_package_versions()
-
-        # self.missing = (missing_remote_dir or missing_local_dir or
-        #                 missing_remote_files or missing_local_files)
-        # self.compare_files()
 
     def download_remote_files(self, use_ignore: bool = True) -> None:
         ignore = []
@@ -76,7 +60,6 @@ class Comparison():
     def _read_file(self, path) -> str:
         with open(path, 'r') as f_file:
             return f_file.read()
-
 
     def _get_file_dict(self, use_ignore: bool) -> dict:
         ignore = ''
@@ -102,12 +85,16 @@ class Comparison():
                 f'{self.config.download_dir}/', '')
             key = f'{parent}:{file.name}'
             if key in paths:
+
+                last_download = datetime.datetime.fromtimestamp(
+                    os.path.getmtime(Path(parent, file)))
+                self.last_download = last_download.strftime(
+                    '%d %b %Y at %H:%M')
                 paths[key]['remote'] = file
             else:
                 paths[key] = {
                     'local': 'missing', 'remote': file, 'match': False}
         return paths
-
 
     def _get_list_of_files(self, root: str, ignore: str) -> list:
         files = []
@@ -121,147 +108,6 @@ class Comparison():
                     continue
                 files.append(file_path)
         return files
-
-
-    # def _missing_dirs(self):
-    #     missing_remote_dir = self._identify_missing_dirs(
-    #         self.local_dirs,
-    #         self.remote_dirs,
-    #         'remote')
-    #     missing_local_dir = self._identify_missing_dirs(
-    #         self.remote_dirs,
-    #         self.local_dirs,
-    #         'local')
-    #     if not missing_remote_dir and not missing_local_dir:
-    #         ic("No directory mismatches", INFO_COLOUR)
-    #     return (missing_remote_dir, missing_local_dir)
-
-    # @staticmethod
-    # def _identify_missing_dirs(first_dict, second_dict, locale):
-    #     if locale == 'local':
-    #         print('')
-    #         print('Directory comparison')
-    #     missing = []
-    #     for item_name, item in first_dict.items():
-    #         if item_name not in second_dict:
-    #             if locale == 'local':
-    #                 ic(f'No {locale} dir: {item_name}', ERROR_COLOUR)
-    #             missing.append(item_name)
-    #     return missing
-
-    # def _missing_files(self):
-    #     missing_remote_files = []
-    #     for dir, local_files in self.local_dirs.items():
-    #         if dir in self.missing_remote_dir:
-    #             continue
-    #         remote_files = self.remote_dirs[dir]
-    #         missing_remote_files += self._identify_missing_files(
-    #             local_files,
-    #             remote_files,
-    #             'remote',
-    #             dir
-    #             )
-
-    #     missing_local_files = []
-    #     for dir, remote_files in self.remote_dirs.items():
-    #         if dir in self.missing_local_dir:
-    #             continue
-    #         local_files = self.local_dirs[dir]
-    #         missing_local_files += self._identify_missing_files(
-    #             remote_files,
-    #             local_files,
-    #             'local',
-    #             dir
-    #             )
-
-    #     return (missing_local_files, missing_remote_files)
-
-    # @staticmethod
-    # def _identify_missing_files(first_dict, second_dict, locale, dir):
-    #     missing = []
-    #     for item_name in first_dict.keys():
-    #         if item_name not in second_dict:
-    #             if locale == 'local':
-    #                 ic(
-    #                     f'No {locale} file: {dir}/{item_name}',
-    #                     ERROR_COLOUR
-    #                     )
-    #             missing.append(item_name)
-    #     return missing
-
-    # def _get_package_versions(self) -> dict[str: list[str]]:
-    #     print('')
-    #     print('Package comparison')
-    #     print(f"{'Package':<15} {'Remote':<8} {'Local':<8}")
-    #     remote_response = requests.get(VERSION_URI)
-    #     if remote_response.status_code != 200:
-    #         ic("Cannot access remote versions", ERROR_COLOUR)
-    #         return
-
-    #     packages = {}
-    #     local_packages = self._local_package_versions()
-    #     remote_packages = remote_response.content
-    #     remote_packages = json.loads(
-    #         remote_response.content.decode(encoding='UTF-8')
-    #         )
-
-    #     missing = False
-    #     for package in self.package_list:
-    #         packages[package] = {}
-    #         if package not in local_packages:
-    #             local_package = ic('missing', ERROR_COLOUR)
-    #             missing = True
-    #         else:
-    #             local_package = local_packages[package]
-    #         packages[package]['local'] = local_package
-
-    #         if package not in remote_packages:
-    #             remote_package = ic('missing', ERROR_COLOUR)
-    #             missing = True
-    #         else:
-    #             remote_package = remote_packages[package]
-    #         packages[package]['remote'] = remote_package
-
-    #         remote_colour = INFO_COLOUR
-    #         if local_package != remote_package:
-    #             remote_colour = ERROR_COLOUR
-    #             missing = True
-    #         local_package = ic(f'{local_package:<8}', INFO_COLOUR)
-    #         remote_package = ic(f'{remote_package:<8}', remote_colour)
-
-    #         print(f'{package:<15} {remote_package} {local_package}')
-
-    #     if not missing:
-    #         ic("No package mismatches", INFO_COLOUR)
-    #     else:
-    #         ic("Package mismatches", ERROR_COLOUR)
-
-    #     return packages
-
-    # def _local_package_versions(self):
-    #     versions = {}
-    #     for package in self.package_list:
-    #         versions[package] = version(package)
-    #     return versions
-
-    # def compare_files(self) -> None:
-    #     print('')
-    #     print('File mismatches')
-    #     heading = f"{'Directory':<10} {'File':<15} {'Remote':>6} {'Local':>6}"
-    #     print(heading)
-    #     sorted_dirs = sorted(self.local_dirs, key=lambda x: x)
-    #     for dir in sorted_dirs:
-    #         local_files = self.local_dirs[dir]
-    #         sorted_files = sorted(local_files, key=lambda x: x)
-    #         remote_files = self.remote_dirs[dir]
-    #         for file_name in sorted_files:
-    #             local_data = local_files[file_name]
-    #             remote_data = remote_files[file_name]
-    #             if len(local_data.content) != len(remote_data.content):
-    #                 output = (f'{dir:<10} {file_name:<15} '
-    #                           f'{len(local_data.content):>6} '
-    #                           f'{len(remote_data.content):>6}')
-    #                 print(output)
 
     def _get_local_versions(self) -> dict:
         envs_dir = Path(
