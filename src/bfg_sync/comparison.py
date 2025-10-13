@@ -85,16 +85,17 @@ class Comparison():
                 f'{self.config.download_dir}/', '')
             key = f'{parent}:{file.name}'
             if key in paths:
-
-                last_download = datetime.datetime.fromtimestamp(
-                    os.path.getmtime(Path(parent, file)))
-                self.last_download = last_download.strftime(
-                    '%d %b %Y at %H:%M')
                 paths[key]['remote'] = file
+                self.last_download = self._download_date(parent, file)
             else:
                 paths[key] = {
                     'local': 'missing', 'remote': file, 'match': False}
         return paths
+
+    def _download_date(self, parent: Path, file: str) -> str:
+        last_download = datetime.datetime.fromtimestamp(
+            os.path.getmtime(Path(parent, file)))
+        return last_download.strftime('%d %b %Y at %H:%M')
 
     def _get_list_of_files(self, root: str, ignore: str) -> list:
         files = []
