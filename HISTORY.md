@@ -1,8 +1,8 @@
 # Version  history for psiutils
 
-## 0.2.17 - 22 November 2025
+## 0.2.18 - 22 November 2025
 
-1. Add backup text
+1. Add backup text and replace _ in icon names
 
 ## 0.2.16 - 22 November 2025
 
