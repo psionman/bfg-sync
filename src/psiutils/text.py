@@ -4,6 +4,7 @@ from copy import copy
 
 
 psi_strings = {
+    'BACKUP': 'Backup',
     'BUILD': 'Build',
     'CANCEL': 'Cancel',
     'CHECK': 'Check',
