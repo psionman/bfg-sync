@@ -1,35 +1,33 @@
 """Constants for the tkinter psiutils."""
 from enum import Enum, auto
 
-from .utilities import invert
+# from .utilities import invert
 from .known_paths import get_documents_dir, get_downloads_dir
 
 DEFAULT_GEOMETRY = '500x400'
 
-# TODO is this needed with Status?
-DIALOG_STATUS: dict = {
-    'yes': True,
-    'no': False,
-    'cancel': None,
-    'null': 0,
-    'undefined': 0,
-    'exit': 1,
-    'ok': 2,
-    'updated': 3,
-    'error': 4,
-}
-DIALOG_STATUS = invert(DIALOG_STATUS)
+# # TODO is this needed with Status?
+# DIALOG_STATUS: dict = {
+#     'yes': True,
+#     'no': False,
+#     'cancel': None,
+#     'null': 0,
+#     'undefined': 0,
+#     'exit': 1,
+#     'ok': 2,
+#     'updated': 3,
+#     'error': 4,
+# }
+# DIALOG_STATUS = invert(DIALOG_STATUS)
 
-# TODO is this needed with Mode?
-MODES: dict[int, str] | dict[str, int] = {
-    0: 'view',
-    1: 'new',
-    2: 'edit',
-    3: 'delete'
-}
-MODES = invert(MODES)
-
-DEFAULT_GEOMETRY = '500x400'
+# # TODO is this needed with Mode?
+# MODES: dict[int, str] | dict[str, int] = {
+#     0: 'view',
+#     1: 'new',
+#     2: 'edit',
+#     3: 'delete'
+# }
+# MODES = invert(MODES)
 
 # GUI
 PAD = 5

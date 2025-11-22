@@ -61,7 +61,7 @@ class Text():
     """Combines package level and psiutils strings."""
     def __init__(self) -> None:
         """
-        Initialize the object with attributes based on the key-value pairs
+        Initialise the object with attributes based on the key-value pairs
         in the `strings` dictionary.
 
         Args:

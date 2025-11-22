@@ -1,8 +1,12 @@
 # Version  history for psiutils
 
+## 0.2.16 - 22 November 2025
+
+1. Remove DIALOG_STATUS & MODES
+
 ## 0.2.15 - 22 November 2025
 
-1. Add restore buttons
+1. Add revert buttons
 
 ## 0.2.14 - 10 November 2025
 
