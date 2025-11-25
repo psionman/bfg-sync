@@ -7,8 +7,11 @@ from dataclasses import dataclass
 import datetime
 import requests
 
+from bfg_sync.constants import REMOTE_BASE
 from config import read_config
 from remote import execute_remote_command, get_remote_files
+from bfg_sync import logger
+
 
 ERROR_COLOUR, INFO_COLOUR, VERSION_URI = 0, 1, 2
 
@@ -35,17 +38,17 @@ class Comparison():
         self.config = config
         self.last_download = None
         self.local_versions = self._get_local_versions()
-        # ic(self.local_versions)
-
         self.remote_versions = self._get_remote_versions()
 
-    def download_remote_files(self, use_ignore: bool = True) -> None:
-        ignore = []
-        if use_ignore:
-            ignore = self.config.ignore
-        local_path = Path(Path(__file__).parent.parent.parent, 'data')
-        get_remote_files('bfg/bfg_wag', local_path, ignore)
-        print('Done ...')
+    def download_remote_files(
+            self, use_ignore: bool = True, use_timed: bool = False) -> None:
+        ignore = self.config.ignore if use_ignore else None
+        date = datetime.datetime.now().strftime('%Y%m%d')
+        if use_timed:
+            date = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+        local_dir = Path(self.config.download_dir, date)
+        get_remote_files(REMOTE_BASE, local_dir, ignore)
+        logger.info('Download completed')
 
     def compare_files(self, use_ignore: bool) -> dict:
         paths = self._get_file_dict(use_ignore)

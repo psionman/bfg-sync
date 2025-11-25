@@ -46,10 +46,10 @@ class MainFrame():
             self.config.last_download = 'Not downloaded'
 
         self.comparison = Comparison()
-        print(f'{self.comparison.last_download=}')
 
         # tk variables
         self.use_ignore = tk.BooleanVar(value=True)
+        self.timed_downloads = tk.BooleanVar()
         self.show_only_mismatches = tk.BooleanVar(value=True)
         self.last_download = tk.StringVar(value=self.comparison.last_download)
         self.download_dir = tk.StringVar(value=self.config.download_dir)
@@ -179,6 +179,12 @@ class MainFrame():
             command=self._populate_tree)
         check_button.grid(row=row, column=0, sticky=tk.W)
 
+        check_button = ttk.Checkbutton(
+            frame,
+            text='Timed downloads',
+            variable=self.timed_downloads)
+        check_button.grid(row=row, column=1, sticky=tk.W)
+
         row += 1
         self.tree = self._get_tree(frame)
         self.tree.grid(row=row, column=0, columnspan=2, sticky=tk.NSEW)
@@ -262,7 +268,8 @@ class MainFrame():
 
     def _download(self, *args) -> None:
         with WaitCursor(self.root):
-            self.comparison.download_remote_files(self.use_ignore.get())
+            self.comparison.download_remote_files(
+                self.use_ignore.get(), self.timed_downloads.get())
             self.last_download.set(
                 datetime.now().strftime('%d %B %Y %H:%M:%S'))
             self.config.update('last_download', self.last_download.get())

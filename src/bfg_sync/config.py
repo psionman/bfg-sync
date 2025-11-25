@@ -2,7 +2,7 @@
 
 from psiconfig import TomlConfig
 
-from bfg_sync.constants import CONFIG_PATH
+from bfg_sync.constants import CONFIG_PATH, ALWAYS_IGNORE
 
 DEFAULT_CONFIG = {
     'development_dir': '',
@@ -22,10 +22,12 @@ DEFAULT_CONFIG = {
 
 def read_config(restore_defaults: bool = False) -> TomlConfig:
     """Return the config file."""
-    return TomlConfig(
+    config = TomlConfig(
         path=CONFIG_PATH,
         defaults=DEFAULT_CONFIG,
         restore_defaults=restore_defaults)
+    config.update('ignore', config.ignore + ALWAYS_IGNORE)
+    return config
 
 
 def save_config(config: TomlConfig) -> TomlConfig | None:
