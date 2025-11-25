@@ -50,6 +50,18 @@ def execute_remote_command(command: str) -> str:
 
 
 def get_remote_files(remote_dir: str, local_dir: str, ignore: list = None):
+    ssh_client = _get_ssh_client()
+    sftp_client = ssh_client.open_sftp()
+    _get_remote_files(ssh_client, sftp_client, remote_dir, local_dir, ignore)
+
+
+def _get_remote_files(
+        ssh_client: paramiko.client.SSHClient,
+        sftp_client,
+        remote_dir: str,
+        local_dir: str,
+        ignore: list = None):
+
     if not ignore:
         ignore = []
 
@@ -58,8 +70,6 @@ def get_remote_files(remote_dir: str, local_dir: str, ignore: list = None):
         os.mkdir(local_dir)
 
     logger.info('Open dir', remote=remote_dir, local=local_dir)
-    ssh_client = _get_ssh_client()
-    sftp_client = ssh_client.open_sftp()
 
     for entry in sftp_client.listdir_attr(remote_dir):
         if entry.filename in ignore:
