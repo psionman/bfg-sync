@@ -1,13 +1,10 @@
 import os
-import json
 import re
-from importlib.metadata import version
 from pathlib import Path
 from dataclasses import dataclass
 import datetime
-import requests
+import shutil
 
-from bfg_sync.constants import REMOTE_BASE
 from config import read_config
 from remote import execute_remote_command, get_remote_files
 from bfg_sync import logger
@@ -34,8 +31,7 @@ class ComparisonData:
 
 class Comparison():
     def __init__(self):
-        config = read_config()
-        self.config = config
+        self.config = read_config()
         self.last_download = None
         self.local_versions = self._get_local_versions()
         self.remote_versions = self._get_remote_versions()
@@ -46,8 +42,12 @@ class Comparison():
         date = datetime.datetime.now().strftime('%Y%m%d')
         if use_timed:
             date = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-        local_dir = Path(self.config.download_dir, date)
-        get_remote_files(REMOTE_BASE, local_dir, ignore)
+        local_dir = Path(
+            self.config.download_dir, date,
+            Path(self.config.remote_base).parts[-1])
+        if local_dir.is_dir():
+            shutil.rmtree(local_dir)
+        get_remote_files(self.config.remote_base, local_dir, ignore)
         logger.info('Download completed')
 
     def compare_files(self, use_ignore: bool) -> dict:
@@ -65,27 +65,23 @@ class Comparison():
             return f_file.read()
 
     def _get_file_dict(self, use_ignore: bool) -> dict:
-        ignore = ''
-        if use_ignore:
-            ignore = f'({'|'.join(self.config.ignore)})'
-
+        ignore = f"({'|'.join(self.config.ignore)})" if use_ignore else ''
         paths = {}
 
-        # Local files
-        search_dir = self.config.development_dir
-        local_files = self._get_list_of_files(search_dir, ignore)
+        local_files = self._get_list_of_files(
+            self.config.development_dir, ignore)
+
+        (remote_files, remote_dir) = self._get_remote_files(ignore)
+
         for file in local_files:
             parent = str(file.parent).replace(
                 f'{self.config.development_dir}/', '')
             key = f'{parent}:{file.name}'
             paths[key] = {'local': file, 'remote': 'missing', 'match': False}
 
-        # Remote files
-        search_dir = self.config.download_dir
-        remote_files = self._get_list_of_files(search_dir, ignore)
         for file in remote_files:
             parent = str(file.parent).replace(
-                f'{self.config.download_dir}/', '')
+                f'{remote_dir}/', '')
             key = f'{parent}:{file.name}'
             if key in paths:
                 paths[key]['remote'] = file
@@ -94,6 +90,19 @@ class Comparison():
                 paths[key] = {
                     'local': 'missing', 'remote': file, 'match': False}
         return paths
+
+    def _get_remote_files(self, ignore: bool) -> list:
+        # Remote files on local - latest download
+        latest_download = (
+            sorted(
+                [dir.name for dir in Path(self.config.download_dir).iterdir()
+                    if dir.is_dir()]
+                )[-1])
+        search_dir = Path(
+            self.config.download_dir,
+            latest_download,
+            Path(self.config.remote_base).parts[-1])
+        return (self._get_list_of_files(search_dir, ignore), search_dir)
 
     def _download_date(self, parent: Path, file: str) -> str:
         last_download = datetime.datetime.fromtimestamp(
@@ -106,9 +115,12 @@ class Comparison():
             if ignore and re.search(ignore, directory_name):
                 continue
             for file_name in file_list:
+                # if directory_name == root:
+                #     directory_name = '/'
                 file_path = Path(directory_name, file_name)
-                if ((ignore and re.search(ignore, file_name))
-                        or str(file_path.parent)[-3:] == 'src'):
+                if (ignore and re.search(ignore, file_name)) or str(
+                    file_path.parent
+                ).endswith('src'):
                     continue
                 files.append(file_path)
         return files
@@ -139,8 +151,7 @@ class Comparison():
         for item in env_files:
             for package in self.config.packages:
                 re_test = rf'{package}{package_re}'
-                res = re.search(re_test, item)
-                if res:
+                if res := re.search(re_test, item):
                     version_res = re.search(version_re, item)
                     package_version = item[
                         version_res.start():version_res.end()]

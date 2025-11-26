@@ -67,7 +67,7 @@ def _get_remote_files(
 
     if not Path(local_dir).is_dir():
         logger.info('Create local', dir=local_dir)
-        os.mkdir(local_dir)
+        Path(local_dir).mkdir(parents=True, exist_ok=True)
 
     logger.info('Open dir', remote=remote_dir, local=local_dir)
 
@@ -78,7 +78,7 @@ def _get_remote_files(
         local_path = os.path.join(local_dir, entry.filename)
         mode = entry.st_mode
         if S_ISDIR(mode):
-            get_remote_files(remote_path, local_path, ignore)
+            _get_remote_files(ssh_client, remote_path, local_path, ignore)
         elif S_ISREG(mode):
             ssh_client.sftp_client.get(remote_path, local_path)
             logger.info('Download file', name=entry.filename)

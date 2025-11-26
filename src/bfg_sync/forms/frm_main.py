@@ -28,6 +28,7 @@ FRAME_TITLE = APP_TITLE
 TREE_COLUMNS = (
     ('dir', 'Directory', 200),
     ('file', 'File name', 300),
+    ('notes', 'Notes', 300)
 )
 
 
@@ -41,6 +42,8 @@ class MainFrame():
         self.button_frame = None
         self.selected_values = None
 
+        # print(sorted([dir.name for dir in Path(self.config.download_dir).iterdir() if dir.is_dir()]))
+
         self.mismatch = 'mismatch'
         if not self.config.last_download:
             self.config.last_download = 'Not downloaded'
@@ -51,7 +54,7 @@ class MainFrame():
         self.use_ignore = tk.BooleanVar(value=True)
         self.timed_downloads = tk.BooleanVar()
         self.show_only_mismatches = tk.BooleanVar(value=True)
-        self.last_download = tk.StringVar(value=self.comparison.last_download)
+        self.last_download = tk.StringVar(value=self.config.last_download)
         self.download_dir = tk.StringVar(value=self.config.download_dir)
 
         self.show()
@@ -84,13 +87,14 @@ class MainFrame():
 
     def _main_frame(self, master: tk.Frame) -> ttk.Frame:
         frame = ttk.Frame(master)
+        frame.rowconfigure(1, weight=1)
         frame.columnconfigure(0, weight=1)
 
         package_frame = self._package_frame(frame)
         package_frame.grid(row=0, column=0, sticky=tk.W)
 
         comparison_frame = self._comparison_frame(frame)
-        comparison_frame.grid(row=1, column=0, sticky=tk.W)
+        comparison_frame.grid(row=1, column=0, sticky=tk.NSEW)
 
         control_frame = self._control_frame(frame)
         control_frame.grid(row=1, column=1, rowspan=9, sticky=tk.NS)
@@ -169,7 +173,7 @@ class MainFrame():
             textvariable=self.last_download,
             borderwidth=1,
             relief=tk.SUNKEN)
-        label.grid(row=row, column=1, sticky=tk.W, padx=PAD, pady=PAD)
+        label.grid(row=row, column=1, sticky=tk.EW, padx=PAD, pady=PAD)
 
         row += 1
         check_button = ttk.Checkbutton(
@@ -179,13 +183,8 @@ class MainFrame():
             command=self._populate_tree)
         check_button.grid(row=row, column=0, sticky=tk.W)
 
-        check_button = ttk.Checkbutton(
-            frame,
-            text='Timed downloads',
-            variable=self.timed_downloads)
-        check_button.grid(row=row, column=1, sticky=tk.W)
-
         row += 1
+        frame.rowconfigure(row, weight=1)
         self.tree = self._get_tree(frame)
         self.tree.grid(row=row, column=0, columnspan=2, sticky=tk.NSEW)
         self._populate_tree()
@@ -197,15 +196,23 @@ class MainFrame():
 
     def _control_frame(self, master: tk.Frame) -> tk.Frame:
         frame = ttk.Frame(master)
-        frame.rowconfigure(1, weight=1)
 
         row = 0
+        check_button = ttk.Checkbutton(
+            frame,
+            text='Timed downloads',
+            variable=self.timed_downloads)
+        check_button.grid(row=row, column=0, sticky=tk.W)
+
+        row += 1
         check_button = ttk.Checkbutton(
             frame, text='Use ignore', variable=self.use_ignore)
         check_button.grid(row=row, column=0, sticky=tk.W)
 
+        row += 1
+        frame.rowconfigure(row, weight=1)
         self.button_frame = self._button_frame(frame)
-        self.button_frame.grid(row=1, column=0,
+        self.button_frame.grid(row=row, column=0,
                                sticky=tk.NS, padx=PAD, pady=PAD)
 
         return frame
@@ -221,7 +228,7 @@ class MainFrame():
         tree.bind('<<TreeviewSelect>>', self._tree_clicked)
         tree.bind('<Button-3>', self._show_context_menu)
 
-        col_list = tuple([col[0] for col in TREE_COLUMNS])
+        col_list = tuple(col[0] for col in TREE_COLUMNS)
         tree['columns'] = col_list
         for col in TREE_COLUMNS:
             (col_key, col_text, col_width) = (col[0], col[1], col[2])
@@ -233,7 +240,7 @@ class MainFrame():
         return tree
 
     def _populate_tree(self, *args) -> None:
-        self.last_download.set(self.comparison.last_download)
+        # self.last_download.set(self.comparison.last_download)
         self.tree.delete(*self.tree.get_children())
         style = ttk.Style()
         style.map(
@@ -243,12 +250,17 @@ class MainFrame():
         self.tree.tag_configure('match', background='white')
 
         comparison = self.comparison.compare_files(self.use_ignore.get())
-        for key, item in comparison.items():
+        for key, item in sorted(comparison.items()):
+            notes = ''
+            if item['local'] == 'missing':
+                notes = 'Local missing'
+            if item['remote'] == 'missing':
+                notes = 'Remote missing'
             if not item['match'] or not self.show_only_mismatches.get():
                 tag = 'match'
                 if not item['match']:
                     tag = 'mismatch'
-                values = key.split(':')
+                values = key.split(':') + [notes]
                 self.tree.insert('', 'end', values=values, tags=(tag,))
 
     @staticmethod
@@ -274,6 +286,7 @@ class MainFrame():
                 datetime.now().strftime('%d %B %Y %H:%M:%S'))
             self.config.update('last_download', self.last_download.get())
             save_config(self.config)
+        self._populate_tree()
 
     def _tree_clicked(self, *args) -> None:
         self.selected_item = self.tree.selection()

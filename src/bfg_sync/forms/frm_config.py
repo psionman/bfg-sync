@@ -5,7 +5,7 @@ from tkinter import ttk, filedialog
 from pathlib import Path
 
 from psiutils.buttons import ButtonFrame, Button
-from psiutils.constants import PAD, Pad
+from psiutils.constants import PAD
 from psiutils.utilities import window_resize
 from psiutils.widgets import separator_frame, vertical_scroll_bar
 
@@ -54,7 +54,7 @@ class ConfigFrame():
         self.remote_pyenv = tk.StringVar(value=self.config.remote_env)
         self.download_dir = tk.StringVar(value=self.config.download_dir)
         self.ignore = tk.StringVar(value='\n'.join(self.config.ignore))
-
+        self.remote_base = tk.StringVar(value= self.config.remote_base)
         self.python_version.trace_add('write', self._enable_buttons)
         self.development_dir.trace_add('write', self._enable_buttons)
         self.local_pyenv.trace_add('write', self._enable_buttons)
@@ -124,8 +124,21 @@ class ConfigFrame():
         frame = ttk.Frame(master)
         frame.rowconfigure(0, weight=1)
         frame.columnconfigure(1, weight=1)
+        frame.columnconfigure(1, weight=1)
 
         row = 0
+        separator = separator_frame(frame, 'Remote Directory')
+        separator.grid(row=row, column=0, columnspan=3,
+                       sticky=tk.EW, padx=PAD)
+
+        row += 1
+        label = ttk.Label(frame, text='Remote base')
+        label.grid(row=row, column=0, sticky=tk.E, padx=PAD, pady=PAD)
+
+        entry = ttk.Entry(frame, textvariable=self.remote_base)
+        entry.grid(row=row, column=1, sticky=tk.EW)
+
+        row += 1
         separator = separator_frame(frame, 'Development Directory')
         separator.grid(row=row, column=0, columnspan=3,
                        sticky=tk.EW, padx=PAD)
@@ -318,6 +331,7 @@ class ConfigFrame():
             self.local_pyenv.get() != self.config.local_env or
             self.remote_pyenv.get() != self.config.remote_env or
             self.download_dir.get() != self.config.download_dir or
+            self.remote_base.get != self.config.remote_base or
             ...
         )
 
@@ -344,6 +358,7 @@ class ConfigFrame():
         self.config.update('download_dir', self.download_dir.get())
         self.config.update('local_env', self.local_pyenv.get())
         self.config.update('remote_env', self.remote_pyenv.get())
+        self.config.update('remote_base', self.remote_base.get())
         packages = [
             item for item in self.packages_text.get('0.0', tk.END).split('\n')
             if item]

@@ -7,8 +7,6 @@ from psiutils.known_paths import resolve_path
 LOCAL_SOURCE = Path(Path.home(), 'projects', 'bfg', 'bfg_api', 'src')
 VERSION_URI = 'http://www.bidforgame.com/bfg/versions/'
 
-REMOTE_BASE = 'bfg/bfg_wag'
-
 # General
 AUTHOR = 'Jeff Watkins'
 APP_NAME = 'bfg-sync'

@@ -8,6 +8,7 @@ DEFAULT_CONFIG = {
     'development_dir': '',
     'local_env': '',
     'remote_env': '',
+    'remote_base': '',
     'python_version': '',
     'download_dir': '',
     'ignore': [],
