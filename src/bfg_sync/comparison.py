@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import datetime
 import shutil
 
-from config import read_config
+from config import read_config, save_config
 from remote import execute_remote_command, get_remote_files
 from bfg_sync import logger
 
@@ -39,16 +39,23 @@ class Comparison():
     def download_remote_files(
             self, use_ignore: bool = True, use_timed: bool = False) -> None:
         ignore = self.config.ignore if use_ignore else None
+
+        local_dir = self._get_local_dir(use_timed)
+        if local_dir.is_dir():
+            shutil.rmtree(local_dir)
+
+        get_remote_files(self.config.remote_base, local_dir, ignore)
+        logger.info('Download completed')
+        return local_dir
+
+    def _get_local_dir(self, use_timed: bool = False) -> Path:
         date = datetime.datetime.now().strftime('%Y%m%d')
         if use_timed:
             date = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-        local_dir = Path(
+
+        return Path(
             self.config.download_dir, date,
             Path(self.config.remote_base).parts[-1])
-        if local_dir.is_dir():
-            shutil.rmtree(local_dir)
-        get_remote_files(self.config.remote_base, local_dir, ignore)
-        logger.info('Download completed')
 
     def compare_files(self, use_ignore: bool) -> dict:
         paths = self._get_file_dict(use_ignore)

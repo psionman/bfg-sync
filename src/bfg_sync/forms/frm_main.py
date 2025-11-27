@@ -42,8 +42,6 @@ class MainFrame():
         self.button_frame = None
         self.selected_values = None
 
-        # print(sorted([dir.name for dir in Path(self.config.download_dir).iterdir() if dir.is_dir()]))
-
         self.mismatch = 'mismatch'
         if not self.config.last_download:
             self.config.last_download = 'Not downloaded'
@@ -280,11 +278,14 @@ class MainFrame():
 
     def _download(self, *args) -> None:
         with WaitCursor(self.root):
-            self.comparison.download_remote_files(
-                self.use_ignore.get(), self.timed_downloads.get())
+            local_dir = self.comparison.download_remote_files(
+                self.use_ignore.get(),
+                self.timed_downloads.get())
+
             self.last_download.set(
                 datetime.now().strftime('%d %B %Y %H:%M:%S'))
             self.config.update('last_download', self.last_download.get())
+            self.config.update('last_download_dir', str(local_dir))
             save_config(self.config)
         self._populate_tree()
 
@@ -312,7 +313,11 @@ class MainFrame():
         file = self.selected_values[1]
         paths = [
             str(Path(self.config.development_dir, directory, file)),
-            str(Path(self.config.download_dir, directory, file)),
+            str(Path(
+                self.config.last_download_dir,
+                directory,
+                file,
+                )),
         ]
         self.root.withdraw()
         subprocess.run(['meld', *paths])
@@ -340,17 +345,17 @@ class ButtonBuilder(ButtonFrame):
         super().__init__(master, orientation=orientation)
 
         buttons = []
-        for button in button_definitions:
-            buttons.append(
-                Button(
-                    self,
-                    text=button.text,
-                    command=button.command,
-                    underline=button.underline,
-                    dimmable=button.dimmable,
-                    sticky=button.sticky,
-                )
+        buttons.extend(
+            Button(
+                self,
+                text=button.text,
+                command=button.command,
+                underline=button.underline,
+                dimmable=button.dimmable,
+                sticky=button.sticky,
             )
+            for button in button_definitions
+        )
         self.buttons = buttons
         self.enable(False)
 

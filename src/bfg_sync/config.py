@@ -14,6 +14,7 @@ DEFAULT_CONFIG = {
     'ignore': [],
     'packages': [],
     'last_download': '',
+    'last_download_dir': '',
     'geometry': {
         'frm_main': '500x600',
         'frm_config': '700x300',
