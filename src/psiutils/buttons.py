@@ -228,6 +228,7 @@ icon_buttons = {
     'copy_docs': (txt.COPY, 'copy_docs'),
     'copy_clipboard': (txt.COPY, 'copy_clipboard'),
     'delete': (txt.DELETE, 'delete'),
+    'download': (txt.DOWNLOAD, 'download'),
     'diff': (txt.DIFF, 'diff'),
     'done': (txt.DONE, 'done'),
     'edit': (txt.EDIT, 'edit'),
@@ -256,6 +257,7 @@ icon_buttons = {
     'start': (txt.START, 'start'),
     'update': (txt.UPDATE, 'update'),
     'upgrade': (txt.UPGRADE, 'upgrade'),
+    'upload': (txt.UPLOAD, 'upload'),
     'use': (txt.USE, 'done'),
     'windows': (txt.WINDOWS, 'windows'),
 }
